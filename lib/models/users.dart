@@ -4,6 +4,9 @@ class User {
 
   const User({required this.fullName, required this.userID});
 
+  @override
+  String toString() => 'User(fullName: $fullName, userID: $userID)';
+
   String getFullName() {
     return fullName;
   }

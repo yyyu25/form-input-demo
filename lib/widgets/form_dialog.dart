@@ -48,16 +48,28 @@ class _InputFormDialogState extends State<InputFormDialog> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
+    final values = <String, dynamic>{
+      'name': _nameController.text.trim(),
+      'amount': double.parse(_amountController.text.trim()),
+      'priority': _priority,
+      'emailNotification': _email,
+      'smsNotification': _sms,
+      'phoneNotification': _phone,
+      'assignedUser': _assignedUser,
+    };
+
+    debugPrint(values.toString());
+
     Navigator.of(context).pop(
       Task(
         taskID: widget.existingTask?.taskID,
-        assignedUser: _assignedUser,
-        taskName: _nameController.text.trim(),
-        hourlyRate: double.parse(_amountController.text.trim()),
-        priority: _priority,
-        emailNotification: _email,
-        smsNotification: _sms,
-        phoneNotification: _phone,
+        taskName: values['name'] as String,
+        hourlyRate: values['amount'] as double,
+        priority: values['priority'] as Priority,
+        emailNotification: values['emailNotification'] as bool,
+        smsNotification: values['smsNotification'] as bool,
+        phoneNotification: values['phoneNotification'] as bool,
+        assignedUser: values['assignedUser'] as User?,
       ),
     );
   }
