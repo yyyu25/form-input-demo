@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:form_input_demo/models/tasks.dart';
+import 'package:form_input_demo/models/users.dart';
+import 'package:form_input_demo/widgets/assign_user_dropdown.dart';
+import 'package:form_input_demo/widgets/notification_checkbox.dart';
+import 'package:form_input_demo/widgets/priority_radius_button.dart';
 
-/// Opens a fresh form. A result will be returned when saving is implemented.
-Future<Map<String, dynamic>?> showInputFormDialog(
+/// Returns the saved task, or null when the form is cancelled.
+Future<Task?> showInputFormDialog(
   BuildContext context, {
   Map<String, dynamic> initialValues = const {},
   Widget? selectionFields,
+  Task? existingTask,
 }) {
-  return showDialog<Map<String, dynamic>>(
+  return showDialog<Task>(
     context: context,
     builder: (_) => InputFormDialog(
       initialValues: initialValues,
-      selectionFields: selectionFields,
+      existingTask: existingTask,
     ),
   );
 }
@@ -19,13 +25,12 @@ class InputFormDialog extends StatefulWidget {
   const InputFormDialog({
     super.key,
     this.initialValues = const {},
-    this.selectionFields,
+    this.existingTask,
   });
 
-  final Map<String, dynamic> initialValues;
+  final Task? existingTask;
 
-  /// Optional space for YA's radio, checkbox and User dropdown widgets.
-  final Widget? selectionFields;
+  final Map<String, dynamic> initialValues;
 
   @override
   State<InputFormDialog> createState() => _InputFormDialogState();
@@ -35,15 +40,61 @@ class _InputFormDialogState extends State<InputFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _amountController;
+  late Priority _priority;
+  User? _assignedUser;
+  late bool _email;
+  late bool _sms;
+  late bool _phone;
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.of(context).pop(
+      Task(
+        taskID: widget.existingTask?.taskID,
+        assignedUser: _assignedUser,
+        taskName: _nameController.text.trim(),
+        hourlyRate: double.parse(_amountController.text.trim()),
+        priority: _priority,
+        emailNotification: _email,
+        smsNotification: _sms,
+        phoneNotification: _phone,
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
+    final task = widget.existingTask;
+    _assignedUser =
+        task?.assignedUser ?? widget.initialValues['assignedUser'] as User?;
+    _priority =
+        task?.priority ??
+        widget.initialValues['priority'] as Priority? ??
+        Priority.low;
+    _email =
+        task?.emailNotification ??
+        widget.initialValues['emailNotification'] as bool? ??
+        false;
+    _sms =
+        task?.smsNotification ??
+        widget.initialValues['smsNotification'] as bool? ??
+        false;
+    _phone =
+        task?.phoneNotification ??
+        widget.initialValues['phoneNotification'] as bool? ??
+        false;
     _nameController = TextEditingController(
-      text: widget.initialValues['name'] as String? ?? 'Sample User',
+      text:
+          task?.taskName ??
+          widget.initialValues['name'] as String? ??
+          'Sample Task',
     );
     _amountController = TextEditingController(
-      text: widget.initialValues['amount']?.toString() ?? '5.00',
+      text:
+          task?.hourlyRate.toString() ??
+          widget.initialValues['amount']?.toString() ??
+          '5.00',
     );
   }
 
@@ -70,22 +121,30 @@ class _InputFormDialogState extends State<InputFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New Form',
+                  widget.existingTask == null ? 'Create Task' : 'Edit Task',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Enter your details and preferences.',
+                  'Fill in the task details below.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _nameController,
+                  validator: (value) {
+                    final length = (value ?? '').trim().runes.length;
+                    return length < 5 || length > 20
+                        ? 'Enter 5–20 characters.'
+                        : null;
+                  },
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'Task Name',
                     helperText: '5–20 characters',
                     border: OutlineInputBorder(),
                   ),
@@ -93,6 +152,15 @@ class _InputFormDialogState extends State<InputFormDialog> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _amountController,
+                  validator: (value) {
+                    final rate = double.tryParse((value ?? '').trim());
+                    return rate == null ||
+                            !rate.isFinite ||
+                            rate <= 3 ||
+                            rate >= 10
+                        ? 'Enter a rate greater than 3 and less than 10.'
+                        : null;
+                  },
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -104,10 +172,30 @@ class _InputFormDialogState extends State<InputFormDialog> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                if (widget.selectionFields != null) ...[
-                  const SizedBox(height: 16),
-                  widget.selectionFields!,
-                ],
+
+                const SizedBox(height: 16),
+                PriorityRadiusButton(
+                  initialValue: _priority,
+                  onChanged: (value) => _priority = value,
+                ),
+
+                const SizedBox(height: 16),
+                NotificationCheckbox(
+                  email: _email,
+                  sms: _sms,
+                  phone: _phone,
+                  onChanged: (email, sms, phone) {
+                    _email = email;
+                    _sms = sms;
+                    _phone = phone;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+                AssignUserDropDown(
+                  initialValue: _assignedUser,
+                  onChanged: (user) => _assignedUser = user,
+                ),
                 const SizedBox(height: 24),
                 OverflowBar(
                   alignment: MainAxisAlignment.end,
@@ -118,10 +206,9 @@ class _InputFormDialogState extends State<InputFormDialog> {
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Cancel'),
                     ),
-                    // Validation and result-map submission are the next step.
-                    const FilledButton(
-                      onPressed: null,
-                      child: Text('Save Form'),
+                    FilledButton(
+                      onPressed: _save,
+                      child: const Text('Save Form'),
                     ),
                   ],
                 ),
