@@ -15,7 +15,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MyApp());
     expect(find.text('No task submitted yet'), findsOneWidget);
-    await tester.tap(find.text('New Form'));
+    await tester.tap(find.text('New Task'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(0), 'First Task');
     await tester.enterText(find.byType(TextFormField).at(1), '7.25');
@@ -109,7 +109,7 @@ void main() {
     expect(edited.assignedUser!.fullName, 'John Doe');
     expect(find.text('Edited Task'), findsOneWidget);
     expect(find.text('John Doe'), findsOneWidget);
-    await tester.tap(find.text('New Form'));
+    await tester.tap(find.text('New Task'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(0), 'Latest Task');
     await tester.tap(find.text('Save Form'));
@@ -117,7 +117,7 @@ void main() {
     expect(find.text('Latest Task'), findsOneWidget);
     expect(find.text('First Task'), findsNothing);
     expect(find.text('None'), findsOneWidget);
-    await tester.tap(find.text('New Form'));
+    await tester.tap(find.text('New Task'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
@@ -130,7 +130,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MyApp());
-    await tester.tap(find.text('New Form'));
+    await tester.tap(find.text('New Task'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(0), ' ');
     await tester.enterText(find.byType(TextFormField).at(1), 'NaN');

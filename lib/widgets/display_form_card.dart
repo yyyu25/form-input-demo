@@ -31,10 +31,7 @@ class DisplayFormCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      'Submitted Tasks',
-                      style: textTheme.titleMedium,
-                    ),
+                    child: Text('Submitted Task', style: textTheme.titleMedium),
                   ),
                   if (savedTask != null && onEdit != null)
                     TextButton.icon(
@@ -48,7 +45,7 @@ class DisplayFormCard extends StatelessWidget {
               if (savedTask == null) ...[
                 Text('No task submitted yet', style: textTheme.bodyLarge),
                 const SizedBox(height: 8),
-                const Text('Click New Form to create one.'),
+                const Text('Click New Task to create one.'),
               ] else ...[
                 Text(
                   savedTask.taskName,

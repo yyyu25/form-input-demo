@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (!mounted || task == null) return;
                     setState(() => _latestTask = task);
                   }, // Navigate to form_dialog page.
-                  child: const Text('New Form'),
+                  child: const Text('New Task'),
                 ),
               ),
               const SizedBox(height: 24),
